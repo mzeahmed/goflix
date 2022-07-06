@@ -7,7 +7,7 @@ type Movie struct {
 	Title       string `db:"title"`
 	ReleaseDate string `db:"release_date"`
 	Duration    int64  `db:"duration"`
-	TrailerUrl  string `db:"traler_url"`
+	TrailerUrl  string `db:"trailer_url"`
 }
 
 func (m Movie) String() string {
