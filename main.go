@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 )
 
@@ -9,7 +11,7 @@ func main() {
 	fmt.Println("Goflix")
 
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s \n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s \n", err)
 		os.Exit(1)
 	}
 }
@@ -21,13 +23,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	defer func(store Store) {
+		_ = store.Close()
+	}(srv.store)
 
-	movies, err := srv.store.GetMovies()
+	http.HandleFunc("/", srv.serveHTTP)
+	log.Printf("Serving HTTP on port 9000")
+	err = http.ListenAndServe(":9000", nil)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("movies=%v \n", movies)
 
-	defer srv.store.Close()
 	return nil
 }
