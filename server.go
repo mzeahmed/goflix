@@ -26,7 +26,7 @@ func (s *server) serveHTTP(writer http.ResponseWriter, request *http.Request) {
 	logRequestMiddleware(s.router.ServeHTTP).ServeHTTP(writer, request)
 }
 
-// Reponse par défaut de notre serveur
+// Reponse par défaut du serveur
 func (s *server) respond(w http.ResponseWriter, _ *http.Request, data interface{}, status int) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -39,4 +39,9 @@ func (s *server) respond(w http.ResponseWriter, _ *http.Request, data interface{
 	if err != nil {
 		log.Printf("cannot format json. err=%v \n", err)
 	}
+}
+
+// Décodage des données envoyées par le client
+func (s *server) decode(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	return json.NewDecoder(r.Body).Decode(v)
 }
