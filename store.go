@@ -56,7 +56,7 @@ func (store *dbStore) GetMovies() ([]*Movie, error) {
 	return movies, nil
 }
 
-func (store *dbStore) getMovieById(id int64) (*Movie, error) {
+func (store *dbStore) GetMovieById(id int64) (*Movie, error) {
 	var movie = &Movie{}
 	err := store.db.Get(movie, "SELECT * FROM movie WHERE id=$1", id)
 	if err != nil {
