@@ -22,8 +22,8 @@ func newServer() *server {
 	return s
 }
 
-func (s *server) serveHTTP(w http.ResponseWriter, r *http.Request) {
-	s.router.ServeHTTP(w, r)
+func (s *server) serveHTTP(writer http.ResponseWriter, request *http.Request) {
+	logRequestMiddleware(s.router.ServeHTTP).ServeHTTP(writer, request)
 }
 
 // Reponse par défaut de notre serveur
