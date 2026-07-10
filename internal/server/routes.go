@@ -1,7 +1,7 @@
-package main
+package server
 
 // Mapping des différentes routes
-func (s *server) routes() {
+func (s *Server) routes() {
 	s.router.HandleFunc("/", s.handleIndex()).Methods("GET")
 	s.router.HandleFunc("/api/token", s.handleTokenCreate()).Methods("POST")
 	s.router.HandleFunc("/api/movies/{id:[0-9]+}", s.handleMovieDetail()).Methods("GET")

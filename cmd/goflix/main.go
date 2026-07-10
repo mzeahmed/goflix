@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/mzeahmed/goflix/internal/server"
+	"github.com/mzeahmed/goflix/internal/store"
 )
 
 func main() {
@@ -17,17 +20,17 @@ func main() {
 }
 
 func run() error {
-	srv := newServer()
-	srv.store = &dbStore{}
-	err := srv.store.Open()
+	srv := server.NewServer()
+	srv.Store = &store.DBStore{}
+	err := srv.Store.Open()
 	if err != nil {
 		return err
 	}
-	defer func(store Store) {
-		_ = store.Close()
-	}(srv.store)
+	defer func(s store.Store) {
+		_ = s.Close()
+	}(srv.Store)
 
-	http.HandleFunc("/", srv.serveHTTP)
+	http.HandleFunc("/", srv.ServeHTTP)
 	log.Printf("Serving HTTP on port 9000")
 	err = http.ListenAndServe(":9000", nil)
 	if err != nil {

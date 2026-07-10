@@ -1,4 +1,4 @@
-package main
+package store
 
 import (
 	"log"
@@ -16,7 +16,7 @@ type Store interface {
 	CreateMovie(m *Movie) error
 }
 
-type dbStore struct {
+type DBStore struct {
 	db *sqlx.DB
 }
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS movie
 )
 `
 
-func (store *dbStore) Open() error {
+func (store *DBStore) Open() error {
 	db, err := sqlx.Connect("sqlite3", "goflix.db")
 	if err != nil {
 		return err
@@ -44,11 +44,11 @@ func (store *dbStore) Open() error {
 	return nil
 }
 
-func (store *dbStore) Close() error {
+func (store *DBStore) Close() error {
 	return store.db.Close()
 }
 
-func (store *dbStore) GetMovies() ([]*Movie, error) {
+func (store *DBStore) GetMovies() ([]*Movie, error) {
 	var movies []*Movie
 	err := store.db.Select(&movies, "SELECT * FROM movie")
 	if err != nil {
@@ -57,7 +57,7 @@ func (store *dbStore) GetMovies() ([]*Movie, error) {
 	return movies, nil
 }
 
-func (store *dbStore) GetMovieById(id int64) (*Movie, error) {
+func (store *DBStore) GetMovieById(id int64) (*Movie, error) {
 	var movie = &Movie{}
 	err := store.db.Get(movie, "SELECT * FROM movie WHERE id=$1", id)
 	if err != nil {
@@ -67,7 +67,7 @@ func (store *dbStore) GetMovieById(id int64) (*Movie, error) {
 	return movie, nil
 }
 
-func (store *dbStore) CreateMovie(m *Movie) error {
+func (store *DBStore) CreateMovie(m *Movie) error {
 	res, err := store.db.Exec("INSERT INTO movie (title, release_date, duration, trailer_url) VALUES (?, ?, ?, ?)",
 		m.Title, m.ReleaseDate, m.Duration, m.TrailerUrl)
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mzeahmed/goflix/internal/store"
 )
 
 type testSore struct {
 	movieId int64
-	movies  []*Movie
+	movies  []*store.Movie
 }
 
 func (t testSore) Open() error {
@@ -23,11 +25,11 @@ func (t testSore) Close() error {
 	return nil
 }
 
-func (t testSore) GetMovies() ([]*Movie, error) {
+func (t testSore) GetMovies() ([]*store.Movie, error) {
 	return t.movies, nil
 }
 
-func (t testSore) GetMovieById(id int64) (*Movie, error) {
+func (t testSore) GetMovieById(id int64) (*store.Movie, error) {
 	for _, m := range t.movies {
 		if m.ID == id {
 			return m, nil
@@ -36,7 +38,7 @@ func (t testSore) GetMovieById(id int64) (*Movie, error) {
 	return nil, nil
 }
 
-func (t testSore) CreateMovie(m *Movie) error {
+func (t testSore) CreateMovie(m *store.Movie) error {
 	t.movieId++
 	m.ID = t.movieId
 	t.movies = append(t.movies, m)
@@ -45,8 +47,8 @@ func (t testSore) CreateMovie(m *Movie) error {
 
 func TestMovieCreateUnit(t *testing.T) {
 	// Création du server avec test de base de donnée
-	srv := newServer()
-	srv.store = &testSore{}
+	srv := NewServer()
+	srv.Store = &testSore{}
 
 	// Préparation du BODY JSON
 	p := struct {
@@ -74,8 +76,8 @@ func TestMovieCreateUnit(t *testing.T) {
 
 func TestMovieCreateIntegration(t *testing.T) {
 	// Création du server avec test de base de donnée
-	srv := newServer()
-	srv.store = &testSore{}
+	srv := NewServer()
+	srv.Store = &testSore{}
 
 	// Préparation du BODY JSON
 	p := struct {
@@ -98,6 +100,6 @@ func TestMovieCreateIntegration(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/movies/", &buf)
 
 	//srv.handleMovieCreate()(w, r)
-	srv.serveHTTP(w, r)
+	srv.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
 }

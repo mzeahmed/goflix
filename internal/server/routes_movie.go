@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"log"
@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
+	"github.com/mzeahmed/goflix/internal/store"
 )
 
 type jsonMovie struct {
@@ -17,9 +19,9 @@ type jsonMovie struct {
 }
 
 // Récuperation de la liste des films
-func (s *server) handleMovieList() http.HandlerFunc {
+func (s *Server) handleMovieList() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		movies, err := s.store.GetMovies()
+		movies, err := s.Store.GetMovies()
 		if err != nil {
 			log.Printf("Cannot load movies, err=%v \n", err)
 			s.respond(w, r, nil, http.StatusInternalServerError)
@@ -36,7 +38,7 @@ func (s *server) handleMovieList() http.HandlerFunc {
 }
 
 // Recuperation des details d'un film
-func (s *server) handleMovieDetail() http.HandlerFunc {
+func (s *Server) handleMovieDetail() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -46,7 +48,7 @@ func (s *server) handleMovieDetail() http.HandlerFunc {
 			return
 		}
 
-		m, err := s.store.GetMovieById(id)
+		m, err := s.Store.GetMovieById(id)
 		if err != nil {
 			log.Printf("Cannot load movie. err=%v", err)
 			s.respond(w, r, nil, http.StatusInternalServerError)
@@ -59,7 +61,7 @@ func (s *server) handleMovieDetail() http.HandlerFunc {
 }
 
 // Creation d'un film
-func (s *server) handleMovieCreate() http.HandlerFunc {
+func (s *Server) handleMovieCreate() http.HandlerFunc {
 	type request struct {
 		Title       string `json:"title"`
 		ReleaseDate string `json:"release_date"`
@@ -75,7 +77,7 @@ func (s *server) handleMovieCreate() http.HandlerFunc {
 			s.respond(w, r, nil, http.StatusBadRequest)
 		}
 
-		m := &Movie{
+		m := &store.Movie{
 			ID:          0,
 			Title:       req.Title,
 			ReleaseDate: req.ReleaseDate,
@@ -83,7 +85,7 @@ func (s *server) handleMovieCreate() http.HandlerFunc {
 			TrailerUrl:  req.TrailerUrl,
 		}
 
-		err = s.store.CreateMovie(m)
+		err = s.Store.CreateMovie(m)
 		if err != nil {
 			log.Printf("Cannot create movie in DB. err=%v", err)
 			s.respond(w, r, nil, http.StatusInternalServerError)
@@ -95,7 +97,7 @@ func (s *server) handleMovieCreate() http.HandlerFunc {
 	}
 }
 
-func mapMovieToJson(m *Movie) jsonMovie {
+func mapMovieToJson(m *store.Movie) jsonMovie {
 	return jsonMovie{
 		ID:          m.ID,
 		Title:       m.Title,

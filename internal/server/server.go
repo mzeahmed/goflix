@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -6,17 +6,19 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/mzeahmed/goflix/internal/store"
 )
 
 const JWT_APP_KEY = "training.go"
 
-type server struct {
+type Server struct {
 	router *mux.Router
-	store  Store
+	Store  store.Store
 }
 
-func newServer() *server {
-	s := &server{
+func NewServer() *Server {
+	s := &Server{
 		router: mux.NewRouter(),
 	}
 
@@ -24,12 +26,12 @@ func newServer() *server {
 	return s
 }
 
-func (s *server) serveHTTP(writer http.ResponseWriter, request *http.Request) {
+func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	logRequestMiddleware(s.router.ServeHTTP).ServeHTTP(writer, request)
 }
 
 // Reponse par défaut du serveur
-func (s *server) respond(w http.ResponseWriter, _ *http.Request, data interface{}, status int) {
+func (s *Server) respond(w http.ResponseWriter, _ *http.Request, data interface{}, status int) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 
@@ -44,6 +46,6 @@ func (s *server) respond(w http.ResponseWriter, _ *http.Request, data interface{
 }
 
 // Décodage des données envoyées par le client
-func (s *server) decode(w http.ResponseWriter, r *http.Request, v interface{}) error {
+func (s *Server) decode(w http.ResponseWriter, r *http.Request, v interface{}) error {
 	return json.NewDecoder(r.Body).Decode(v)
 }

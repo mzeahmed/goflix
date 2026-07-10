@@ -15,7 +15,7 @@ API REST en Go permettant de gérer un catalogue de films (CRUD basique) avec au
 ## Lancer le serveur
 
 ```bash
-go run .
+make run
 ```
 
 Le serveur démarre sur le port **9000** :
@@ -26,6 +26,33 @@ Serving HTTP on port 9000
 ```
 
 L'API est alors accessible sur `http://localhost:9000`.
+
+## Commandes Makefile
+
+```bash
+make help
+```
+
+| Commande       | Description                        |
+|----------------|-------------------------------------|
+| `make run`     | Lance le serveur                    |
+| `make build`   | Compile le binaire dans `bin/goflix`|
+| `make fmt`     | Formate le code source              |
+| `make vet`     | Lance `go vet`                      |
+| `make test`    | Lance les tests unitaires           |
+| `make check`   | Lance `fmt`, `vet` et `test`        |
+| `make tidy`    | Nettoie `go.mod` / `go.sum`         |
+| `make update`  | Met à jour les dépendances          |
+| `make clean`   | Supprime les fichiers générés       |
+| `make doctor`  | Affiche l'environnement de dev      |
+
+## Structure du projet
+
+```
+cmd/goflix/       # Point d'entrée (main)
+internal/server/  # Routage HTTP, handlers, middlewares
+internal/store/    # Modèles et accès à la base de données
+```
 
 ## Tester l'API avec curl
 

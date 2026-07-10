@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -9,14 +9,14 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func (s *server) handleIndex() http.HandlerFunc {
+func (s *Server) handleIndex() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		//fmt.Fprintf(writer, "Welcome to Goflix")
 		//_, _ = fmt.Fprintf(writer, "Welcome to Goflix")
 	}
 }
 
-func (s *server) handleTokenCreate() http.HandlerFunc {
+func (s *Server) handleTokenCreate() http.HandlerFunc {
 	type request struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
