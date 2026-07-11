@@ -1,0 +1,45 @@
+http:
+  routers:
+    goflix:
+      rule: Host(`api.goflix.local`)
+      entryPoints:
+        - web
+        - websecure
+      service: goflix
+      tls: { }
+          
+    mailpit:
+      rule: Host(`mail.goflix.local`)
+      entryPoints:
+        - web
+        - websecure
+      service: mailpit
+      tls: { }
+
+    phpmyadmin:
+      rule: Host(`db.goflix.local`)
+      entryPoints:
+        - websecure
+      service: phpmyadmin
+      tls: { }
+
+  services:
+    goflix:
+      loadBalancer:
+        servers:
+          - url: http://app:9000
+
+    mailpit:
+      loadBalancer:
+        servers:
+          - url: http://mailpit:8025
+
+    phpmyadmin:
+      loadBalancer:
+        servers:
+          - url: http://phpmyadmin:80
+
+tls:
+  certificates:
+    - certFile: /certs/goflix.local+1.pem
+      keyFile: /certs/goflix.local+1-key.pem

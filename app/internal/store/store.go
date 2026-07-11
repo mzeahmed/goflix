@@ -1,10 +1,13 @@
 package store
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Store interface {
@@ -24,7 +27,7 @@ type DBStore struct {
 var schema = `
 CREATE TABLE IF NOT EXISTS movie
 (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	id INT AUTO_INCREMENT PRIMARY KEY,
 	title TEXT,
 	release_date TEXT,
 	duration INTEGER,
@@ -32,8 +35,25 @@ CREATE TABLE IF NOT EXISTS movie
 )
 `
 
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func dsn() string {
+	host := getenv("DB_HOST", "127.0.0.1")
+	port := getenv("DB_PORT", "3306")
+	user := getenv("DB_USER", "goflix")
+	password := getenv("DB_PASSWORD", "goflix")
+	name := getenv("DB_NAME", "goflix")
+
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", user, password, host, port, name)
+}
+
 func (store *DBStore) Open() error {
-	db, err := sqlx.Connect("sqlite3", "goflix.db")
+	db, err := sqlx.Connect("mysql", dsn())
 	if err != nil {
 		return err
 	}
@@ -59,7 +79,7 @@ func (store *DBStore) GetMovies() ([]*Movie, error) {
 
 func (store *DBStore) GetMovieById(id int64) (*Movie, error) {
 	var movie = &Movie{}
-	err := store.db.Get(movie, "SELECT * FROM movie WHERE id=$1", id)
+	err := store.db.Get(movie, "SELECT * FROM movie WHERE id=?", id)
 	if err != nil {
 		return movie, nil
 	}

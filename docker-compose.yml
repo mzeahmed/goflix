@@ -1,0 +1,100 @@
+services:
+  traefik:
+    image: traefik:v3.4
+    container_name: goflix_traefik
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./certs:/certs
+    networks:
+      - frontend
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: goflix_app
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USER: goflix
+      DB_PASSWORD: goflix
+      DB_NAME: goflix
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: on-failure
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.goflix.rule=Host(`api.goflix.local`)
+      - traefik.http.routers.goflix.entrypoints=web,websecure
+      - traefik.http.routers.goflix.tls=true
+      - traefik.http.services.goflix.loadbalancer.server.port=9000
+    networks:
+      - frontend
+      - application
+      - database
+
+  database:
+    image: mariadb:11.8
+    container_name: goflix_database
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: goflix
+      MYSQL_USER: goflix
+      MYSQL_PASSWORD: goflix
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - database
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: goflix_phpmyadmin
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_ABSOLUTE_URI: https://db.goflix.local/
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.phpmyadmin.rule=Host(`db.goflix.local`)
+      - traefik.http.routers.phpmyadmin.entrypoints=websecure
+      - traefik.http.routers.phpmyadmin.tls=true
+      - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+    networks:
+      - frontend
+      - database
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: goflix_mailpit
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mailpit.rule=Host(`mail.goflix.local`)
+      - traefik.http.services.mailpit.loadbalancer.server.port=8025
+    networks:
+      - frontend
+
+volumes:
+  mariadb_data:
+
+networks:
+  frontend:
+  application:
+  database:
